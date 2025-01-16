@@ -24,6 +24,8 @@ AS
 ;
 
 -- Question 1i
+/* In the people table, find the namefirst, namelast and birthyear for all players with
+weight greater than 300 pounds. */
 CREATE VIEW q1i(namefirst, namelast, birthyear)
 AS
   SELECT namefirst, namelast, birthyear
@@ -32,155 +34,133 @@ AS
 ;
 
 -- Question 1ii
+/* Find the namefirst, namelast and birthyear of all players whose namefirst field 
+contains a space. Order the results by namefirst, breaking ties with namelast both in 
+ascending order */
 CREATE VIEW q1ii(namefirst, namelast, birthyear)
 AS
   SELECT namefirst, namelast, birthyear
   FROM people
-  WHERE namefirst LIKE '% %' 
-  ORDER BY namefirst, namelast
+  WHERE namefirst LIKE '% %'
+  ORDER BY namefirst ASC, namelast ASC
 ;
 
 -- Question 1iii
+/* From the people table, group together players with the same birthyear, and report the
+birthyear, average height, and number of players for each birthyear. Order the results 
+by birthyear in ascending order. */
 CREATE VIEW q1iii(birthyear, avgheight, count)
 AS
-  SELECT birthyear, AVG(height) as avgheight, COUNT(*)
+  SELECT birthyear, AVG(height), COUNT(*)
   FROM people
   GROUP BY birthyear
-  ORDER BY birthyear 
+  ORDER BY birthyear ASC
 ;
 
 -- Question 1iv
+/* Following the results of part iii, now only include groups with an average height > 
+70. Again order the results by birthyear in ascending order. */
 CREATE VIEW q1iv(birthyear, avgheight, count)
 AS
   SELECT birthyear, AVG(height), COUNT(*)
   FROM people
   GROUP BY birthyear
   HAVING AVG(height) > 70
-  ORDER BY birthyear;
+  ORDER BY birthyear ASC
 ;
 
 -- Question 2i
+/* Find the namefirst, namelast, playerid and yearid of all people who were successfully 
+inducted into the Hall of Fame in descending order of yearid. Break ties on yearid by 
+playerid (ascending). */
+/* Watch out for ambiguous playerid */
 CREATE VIEW q2i(namefirst, namelast, playerid, yearid)
 AS
-  SELECT p.namefirst, p.namelast, h.playerid, h.yearid
-  FROM people AS p
-  INNER JOIN HallofFame AS h ON p.playerid = h.playerid
-  WHERE h.inducted = 'Y'
-  ORDER BY h.yearid DESC, h.playerid ASC;
+  SELECT namefirst, namelast, people.playerid, yearid
+  FROM people INNER JOIN HallofFame ON people.playerID = HallofFame.playerID
+  WHERE HallofFame.inducted = 'Y'
+  ORDER BY yearid DESC, people.playerid ASC
 ;
 
 -- Question 2ii
+/* Find the people who were successfully inducted into the Hall of Fame and played in 
+college at a school located in the state of California. For each person, return their 
+namefirst, namelast, playerid, schoolid, and yearid in descending order of yearid. Break
+ties on yearid by schoolid, playerid (ascending). For this question, yearid refers to 
+the year of induction into the Hall of Fame. */
 CREATE VIEW q2ii(namefirst, namelast, playerid, schoolid, yearid)
 AS
-  SELECT p.namefirst, p.namelast, p.playerid, cp.schoolid, h.yearid
-  FROM people AS p
-  INNER JOIN HallofFame AS h ON p.playerid = h.playerid
-  INNER JOIN CollegePlaying AS cp ON p.playerid = cp.playerid
-  INNER JOIN Schools AS s ON cp.schoolid = s.schoolid
-  WHERE h.inducted = 'Y' AND s.schoolState = 'CA'
-  ORDER BY h.yearid DESC, cp.schoolid ASC, p.playerid ASC;
+  SELECT namefirst, namelast, people.playerid, CollegePlaying.schoolid, yearid
+  FROM people
+  INNER JOIN HallofFame ON people.playerID = HallofFame.playerID
+  INNER JOIN CollegePlaying ON people.playerID = CollegePlaying.playerID
+  WHERE HallofFame.inducted = 'Y' AND CollegePlaying.schoolid IN (
+    SELECT schoolid
+    FROM schools
+    WHERE schoolState = 'CA'
+  )
+  ORDER BY yearid DESC, CollegePlaying.schoolid ASC, people.playerid ASC
 ;
 
+
 -- Question 2iii
+/* Find the playerid, namefirst, namelast and schoolid of all people who were 
+successfully inducted into the Hall of Fame -- whether or not they played in college.
+Return people in descending order of playerid. Break ties on playerid by schoolid 
+(ascending). (Note: schoolid should be NULL if they did not play in college.) */
 CREATE VIEW q2iii(playerid, namefirst, namelast, schoolid)
 AS
-  SELECT p.playerid, p.namefirst, p.namelast, cp.schoolid
-  FROM people AS p
-  INNER JOIN HallofFame AS h ON p.playerid = h.playerid
-  LEFT JOIN CollegePlaying AS cp ON p.playerid = cp.playerid
+  SELECT p.playerid, namefirst, namelast, cp.schoolid
+  FROM people p
+  INNER JOIN HallofFame h ON p.playerID = h.playerID
+  LEFT JOIN CollegePlaying cp ON p.playerID = cp.playerID
   WHERE h.inducted = 'Y'
-  ORDER BY p.playerid DESC, cp.schoolid ASC;
+  ORDER BY p.playerid DESC, cp.schoolid ASC
 ;
 
 -- Question 3i
 CREATE VIEW q3i(playerid, namefirst, namelast, yearid, slg)
 AS
-  SELECT b.playerid, p.namefirst, p.namelast, b.yearid, 
-         CAST(b.H + b.H2B + 2 * b.H3B + 3 * b.HR AS REAL) / b.AB AS slg
-  FROM batting AS b
-  INNER JOIN people AS p ON b.playerid = p.playerid
-  WHERE b.AB > 50
-  ORDER BY slg DESC, b.yearid ASC, b.playerid ASC
-  LIMIT 10;
+  SELECT 1, 1, 1, 1, 1 -- replace this line
 ;
 
 -- Question 3ii
 CREATE VIEW q3ii(playerid, namefirst, namelast, lslg)
 AS
-  SELECT p.playerid, p.namefirst, p.namelast, 
-         CAST(SUM(b.H + b.H2B + 2 * b.H3B + 3 * b.HR) AS REAL) / SUM(b.AB) AS lslg
-  FROM batting AS b
-  INNER JOIN people AS p ON b.playerid = p.playerid
-  GROUP BY p.playerid, p.namefirst, p.namelast
-  HAVING SUM(b.AB) > 50
-  ORDER BY lslg DESC, p.playerid ASC
-  LIMIT 10;
+  SELECT 1, 1, 1, 1 -- replace this line
 ;
 
 -- Question 3iii
 CREATE VIEW q3iii(namefirst, namelast, lslg)
 AS
-  SELECT p.namefirst, p.namelast, 
-         CAST(SUM(b.H + b.H2B + 2 * b.H3B + 3 * b.HR) AS REAL) / SUM(b.AB) AS lslg
-  FROM batting AS b
-  INNER JOIN people AS p ON b.playerid = p.playerid
-  GROUP BY p.playerid, p.namefirst, p.namelast
-  HAVING SUM(b.AB) > 50
-  AND lslg > (SELECT CAST(SUM(b2.H + b2.H2B + 2 * b2.H3B + 3 * b2.HR) AS REAL) / SUM(b2.AB)
-              FROM batting AS b2
-              WHERE b2.playerid = 'mayswi01')
+  SELECT 1, 1, 1 -- replace this line
 ;
 
 -- Question 4i
 CREATE VIEW q4i(yearid, min, max, avg)
 AS
-  SELECT yearid, MIN(salary), MAX(salary), AVG(salary)
-  FROM salaries
-  GROUP BY yearid
-  ORDER BY yearid ASC;
+  SELECT 1, 1, 1, 1 -- replace this line
 ;
 
 -- Question 4ii
 CREATE VIEW q4ii(binid, low, high, count)
 AS
-  WITH range AS (
-        SELECT MIN(salary) AS lowest, MAX(salary) AS highest, CAST (((MAX(salary) - MIN(salary))/10) AS INT) AS bucket FROM salaries where yearid = 2016
-    )
-    SELECT binid, lowest + binid * bucket, lowest + (binid + 1) * bucket, count(*)
-    FROM binids b, salaries s, range
-    WHERE (salary between lowest + binid * bucket and lowest + (binid + 1) * bucket)
-    AND yearid = 2016
-    GROUP BY binid
+  SELECT 1, 1, 1, 1 -- replace this line
 ;
 
 -- Question 4iii
 CREATE VIEW q4iii(yearid, mindiff, maxdiff, avgdiff)
 AS
-  SELECT s1.yearid, 
-         MIN(s1.salary) - MIN(s2.salary),
-         MAX(s1.salary) - MAX(s2.salary),
-         AVG(s1.salary) - AVG(s2.salary)
-  FROM salaries AS s1
-  INNER JOIN salaries AS s2 ON s1.yearid = s2.yearid + 1
-  GROUP BY s1.yearid
-  ORDER BY s1.yearid ASC;
+  SELECT 1, 1, 1, 1 -- replace this line
 ;
 
 -- Question 4iv
 CREATE VIEW q4iv(playerid, namefirst, namelast, salary, yearid)
 AS
-  SELECT s.playerid, p.namefirst, p.namelast, s.salary, s.yearid
-  FROM salaries AS s
-  INNER JOIN people AS p ON s.playerid = p.playerid
-  WHERE s.yearid = 2000 AND s.salary = (SELECT MAX(salary) FROM salaries WHERE yearid = 2000)
-     OR s.yearid = 2001 AND s.salary = (SELECT MAX(salary) FROM salaries WHERE yearid = 2001);
+  SELECT 1, 1, 1, 1, 1 -- replace this line
 ;
 -- Question 4v
 CREATE VIEW q4v(team, diffAvg) AS
-  SELECT a.teamid, MAX(s.salary) - MIN(s.salary) AS diffAvg
-  FROM allstarfull AS a
-  INNER JOIN salaries AS s ON a.playerid = s.playerid AND a.yearid = s.yearid
-  WHERE a.yearid = 2016
-  GROUP BY a.teamid;
+  SELECT 1, 1 -- replace this line
 ;
 
